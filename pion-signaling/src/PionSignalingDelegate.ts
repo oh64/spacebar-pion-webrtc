@@ -78,7 +78,7 @@ export class PionSignalingDelegate implements SignalingDelegate {
 			Promise.reject();
 		}
 
-		const offer = SDPInfo.parse("m=audio\n" + sdpOffer);
+		const offer = sdpOffer.startsWith("v=0") ? SDPInfo.parse(sdpOffer) : SDPInfo.parse("m=audio\n" + sdpOffer);
 
 		const rtpHeaders = new Map(offer.medias[0].extensions);
 
