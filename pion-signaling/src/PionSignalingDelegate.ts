@@ -105,22 +105,30 @@ export class PionSignalingDelegate implements SignalingDelegate {
 		audioCodec.setChannels(2);
 		audioMedia.addCodec(audioCodec);
 
-		audioMedia.addExtension(
-			getIdForHeader(
-				rtpHeaders,
-				"urn:ietf:params:rtp-hdrext:ssrc-audio-level",
-			),
+		const audioLevelExtensionId = getIdForHeader(
+			rtpHeaders,
 			"urn:ietf:params:rtp-hdrext:ssrc-audio-level",
-		);
+		)
+
+		if(audioLevelExtensionId > -1) {
+			audioMedia.addExtension(
+				audioLevelExtensionId,
+				"urn:ietf:params:rtp-hdrext:ssrc-audio-level",
+			);
+		}
+
 		if (isChromium) {
 			// if this is chromium, apply this header
-			audioMedia.addExtension(
-				getIdForHeader(
-					rtpHeaders,
-					"http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01",
-				),
+			const transportWideCcHeaderId = getIdForHeader(
+				rtpHeaders,
 				"http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01",
-			);
+			)
+			if(transportWideCcHeaderId > -1) {
+				audioMedia.addExtension(
+					transportWideCcHeaderId,
+					"http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01",
+				);
+			}
 		}
 
 		const videoMedia = new MediaInfo("1", "video");
@@ -138,38 +146,53 @@ export class PionSignalingDelegate implements SignalingDelegate {
 		videoCodec.addParam("x-google-max-bitrate", "2500");
 		videoMedia.addCodec(videoCodec);
 		
-		videoMedia.addExtension(
-			getIdForHeader(
-				rtpHeaders,
-				"http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time",
-			),
+		const absSendTimeHeaderId = getIdForHeader(
+			rtpHeaders,
 			"http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time",
-		);
-		videoMedia.addExtension(
-			getIdForHeader(rtpHeaders, "urn:ietf:params:rtp-hdrext:toffset"),
-			"urn:ietf:params:rtp-hdrext:toffset",
-		);
-		videoMedia.addExtension(
-			getIdForHeader(
-				rtpHeaders,
-				"http://www.webrtc.org/experiments/rtp-hdrext/playout-delay",
-			),
+		)
+		if(absSendTimeHeaderId > -1) {
+			videoMedia.addExtension(
+				absSendTimeHeaderId,
+				"http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time",
+			);
+		}
+		const toffsetHeaderId = getIdForHeader(rtpHeaders, "urn:ietf:params:rtp-hdrext:toffset")
+		if(toffsetHeaderId > -1) {
+			videoMedia.addExtension(
+				toffsetHeaderId,
+				"urn:ietf:params:rtp-hdrext:toffset",
+			);
+		}
+		const playoutDelayHeaderId = getIdForHeader(
+			rtpHeaders,
 			"http://www.webrtc.org/experiments/rtp-hdrext/playout-delay",
-		);
-		videoMedia.addExtension(
-			getIdForHeader(
+		)
+		if(playoutDelayHeaderId > -1) {
+			videoMedia.addExtension(
+				playoutDelayHeaderId,
+				"http://www.webrtc.org/experiments/rtp-hdrext/playout-delay",
+			);
+		}
+		const transportWideCcHeaderId = getIdForHeader(
 				rtpHeaders,
 				"http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01",
-			),
-			"http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01",
-		);
+			)
+			if(transportWideCcHeaderId > -1) {
+				videoMedia.addExtension(
+					transportWideCcHeaderId,
+					"http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01",
+				);
+			}
 
 		if (isChromium) {
 			// if this is chromium, apply this header
-			videoMedia.addExtension(
-				getIdForHeader(rtpHeaders, "urn:3gpp:video-orientation"),
-				"urn:3gpp:video-orientation",
-			);
+			const videoOrientationHeaderId = getIdForHeader(rtpHeaders, "urn:3gpp:video-orientation")
+			if(videoOrientationHeaderId > -1) {
+				videoMedia.addExtension(
+					videoOrientationHeaderId,
+					"urn:3gpp:video-orientation",
+				);
+			}
 		}
 
 		offer.medias = [audioMedia, videoMedia];
