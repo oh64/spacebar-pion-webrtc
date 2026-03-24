@@ -21,14 +21,14 @@ export class PionSignalingDelegate implements SignalingDelegate {
 	public async start(public_ip: string, portMin: number, portMax: number): Promise<void> {
 		this._port = portMin;
 		this._ip = public_ip;
-		await this.startSfu();
-		await this.ipc.connect();
+		if(!await this.startSfu())
+			await this.ipc.connect();
 	}
 
 	private async startSfu() {
 		if (!process.env.PION_SFU_BIN) {
 			console.warn(`PION_SFU_BIN environment variable not set, skipping integrated SFU startup - voice will not work if running at least an SFU instance at ${this._ip}:${this._port}!`);
-			return;
+			return false;
 		}
 		this._sfuProcess = spawn(process.env.PION_SFU_BIN, [ "-port", this._port.toString(), "-ip", this._ip ]);
 
@@ -40,9 +40,15 @@ export class PionSignalingDelegate implements SignalingDelegate {
 			console.error(`[Pion SFU] ${data}`);
 		});
 
-		const [ code ] = await once(this._sfuProcess!, "close");
-		console.log(`Pion SFU exited with code: ${code} - restarting...`);
-		if (!this._isStopping) await this.startSfu();
+		await this.ipc.connect();
+
+		once(this._sfuProcess!, "close").then(([ code ]) => {
+			console.log(`Pion SFU exited with code: ${code} - restarting...`);
+			this.ipc.close(); // clean up state, since the SFU won't have any
+			if (!this._isStopping) this.startSfu();
+		});
+
+		return true;
 	}
 
 	public join(
